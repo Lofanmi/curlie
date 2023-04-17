@@ -10,8 +10,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/rs/curlie/args"
-	"github.com/rs/curlie/formatter"
+	"github.com/Lofanmi/curlie/args"
+	"github.com/Lofanmi/curlie/formatter"
 	"golang.org/x/crypto/ssh/terminal"
 )
 

@@ -37,7 +37,7 @@ pkg install curlie
 Using [go](https://golang.org/):
 
 ```sh
-go install github.com/rs/curlie@latest
+go install github.com/Lofanmi/curlie@latest
 ```
 
 Using [scoop](https://scoop.sh/):
@@ -46,7 +46,7 @@ Using [scoop](https://scoop.sh/):
 scoop install curlie
 ```
 
-Or download a [binary package](https://github.com/rs/curlie/releases/latest).
+Or download a [binary package](https://github.com/Lofanmi/curlie/releases/latest).
 
 ## Usage
 
@@ -86,4 +86,4 @@ go build .
 
 ## License
 
-All source code is licensed under the [MIT License](https://raw.github.com/rs/curlie/master/LICENSE).
+All source code is licensed under the [MIT License](https://raw.github.com/Lofanmi/curlie/master/LICENSE).
