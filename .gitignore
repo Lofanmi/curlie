@@ -1,2 +1,3 @@
 .snapcraft/snapcraft.cfg
 dist/
+.idea

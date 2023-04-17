@@ -50,6 +50,7 @@ func main() {
 
 	verbose := opts.Has("verbose") || opts.Has("v")
 	quiet := opts.Has("silent") || opts.Has("s")
+	parseJsonUnicode := opts.Remove("parse-json-unicode")
 	pretty := opts.Remove("pretty")
 	opts.Remove("i")
 
@@ -79,13 +80,15 @@ func main() {
 		isForm := opts.Has("F")
 		if pretty || terminal.IsTerminal(stdoutFd) {
 			inputWriter = &formatter.JSON{
-				Out:    inputWriter,
-				Scheme: scheme,
+				Out:              inputWriter,
+				Scheme:           scheme,
+				ParseJsonUnicode: parseJsonUnicode,
 			}
 			// Format/colorize JSON output if stdout is to the terminal.
 			stdout = &formatter.JSON{
-				Out:    stdout,
-				Scheme: scheme,
+				Out:              stdout,
+				Scheme:           scheme,
+				ParseJsonUnicode: parseJsonUnicode,
 			}
 
 			// Filter out binary output.

@@ -2,21 +2,24 @@ package formatter
 
 import (
 	"bytes"
+	"fmt"
 	"io"
+	"strconv"
 )
 
 // JSON is a writer that formats/colorizes JSON without decoding it.
 // If the stream of bytes does not start with {, the formatting is disabled.
 type JSON struct {
-	Out       io.Writer
-	Scheme    ColorScheme
-	inited    bool
-	disabled  bool
-	last      byte
-	lastQuote byte
-	isValue   bool
-	level     int
-	buf       []byte
+	Out              io.Writer
+	Scheme           ColorScheme
+	ParseJsonUnicode bool
+	inited           bool
+	disabled         bool
+	last             byte
+	lastQuote        byte
+	isValue          bool
+	level            int
+	buf              []byte
 }
 
 var indent = []byte(`    `)
@@ -54,6 +57,18 @@ func (j *JSON) Write(p []byte) (n int, err error) {
 				cp = append(cp, b)
 			}
 			continue
+		case '\\':
+			if j.ParseJsonUnicode && i+2+4 <= len(p)-1 && p[i+1] == 'u' {
+				char, e := strconv.ParseInt(string(p[i+2:i+2+4]), 16, 32)
+				if e == nil {
+					cp = append(cp, []byte(fmt.Sprintf("%c", char))...)
+				} else {
+					cp = append(cp, p[i+2:i+2+4]...)
+				}
+				i += 2 + 4 - 1
+				continue
+			}
+			fallthrough
 		default:
 			if j.lastQuote != 0 {
 				cp = append(cp, b)
