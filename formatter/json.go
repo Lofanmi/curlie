@@ -2,9 +2,7 @@ package formatter
 
 import (
 	"bytes"
-	"fmt"
 	"io"
-	"strconv"
 )
 
 // JSON is a writer that formats/colorizes JSON without decoding it.
@@ -33,6 +31,12 @@ func (j *JSON) Write(p []byte) (n int, err error) {
 	if j.disabled {
 		return j.Out.Write(p)
 	}
+
+	// 检查是否包含 curl 的时间指标输出
+	if bytes.Contains(p, []byte("TimingMetrics")) {
+		return j.Out.Write(p)
+	}
+
 	cs := j.Scheme
 	cp := j.buf
 	for i := 0; i < len(p); i++ {
@@ -51,62 +55,41 @@ func (j *JSON) Write(p []byte) (n int, err error) {
 				if j.isValue {
 					c = cs.Value
 				}
-				cp = append(append(cp, c...), b)
+				cp = append(cp, c...)
+				cp = append(cp, b)
 			case b:
 				j.lastQuote = 0
 				cp = append(cp, b)
-			}
-			continue
-		case '\\':
-			if j.ParseJsonUnicode && i+2+4 <= len(p)-1 && p[i+1] == 'u' {
-				char, e := strconv.ParseInt(string(p[i+2:i+2+4]), 16, 32)
-				if e == nil {
-					cp = append(cp, []byte(fmt.Sprintf("%c", char))...)
-				} else {
-					cp = append(cp, p[i+2:i+2+4]...)
-				}
-				i += 2 + 4 - 1
-				continue
-			}
-			fallthrough
-		default:
-			if j.lastQuote != 0 {
+				cp = append(cp, cs.Default...)
+			default:
 				cp = append(cp, b)
-				j.last = b
-				continue
 			}
-		}
-		switch b {
-		case ' ', '\t', '\r', '\n':
-			// Skip spaces outside of quoted areas.
-			continue
 		case '{', '[':
 			j.isValue = false
 			j.level++
-			cp = append(append(append(cp, cs.Default...), b, '\n'), bytes.Repeat(indent, j.level)...)
+			cp = append(cp, cs.Default...)
+			cp = append(cp, b)
+			cp = append(cp, '\n')
+			cp = append(cp, bytes.Repeat(indent, j.level)...)
 		case '}', ']':
 			j.level--
 			if j.level < 0 {
 				j.level = 0
 			}
-			cp = append(append(append(append(cp, '\n'), bytes.Repeat(indent, j.level)...), cs.Default...), b)
-			if (p[0] != '}' && p[0] != ']') && j.level == 0 {
-				// Add a return after the outer closing brace.
-				// If cs is zero that means color is disabled, so only append '\n'
-				// else append '\n' and ResetColor.
-				if cs.IsZero() {
-					cp = append(cp, '\n')
-				} else {
-					cp = append(append(cp, '\n'), cs.Color(ResetColor)...)
-				}
-
-			}
+			cp = append(cp, '\n')
+			cp = append(cp, bytes.Repeat(indent, j.level)...)
+			cp = append(cp, cs.Default...)
+			cp = append(cp, b)
 		case ':':
 			j.isValue = true
-			cp = append(append(cp, cs.Default...), b, ' ')
+			cp = append(cp, cs.Default...)
+			cp = append(cp, b, ' ')
 		case ',':
 			j.isValue = false
-			cp = append(append(append(cp, cs.Default...), b, '\n'), bytes.Repeat(indent, j.level)...)
+			cp = append(cp, cs.Default...)
+			cp = append(cp, b)
+			cp = append(cp, '\n')
+			cp = append(cp, bytes.Repeat(indent, j.level)...)
 		default:
 			if j.last == ':' {
 				switch b {
