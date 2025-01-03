@@ -16,9 +16,19 @@ import (
 )
 
 var (
-	commit  = "0000000"
-	version = "v0.0.0-LOCAL"
-	date    = "0000-00-00T00:00:00Z"
+	commit            = "0000000"
+	version           = "v0.0.0-LOCAL"
+	date              = "0000-00-00T00:00:00Z"
+	defaultTimeFormat = "\n┌───────────TimingMetrics───────────────┐\r\n" +
+		"│ DNS Lookup:        %{time_namelookup}s          │\r\n" +
+		"│ TCP Connection:    %{time_connect}s          │\r\n" +
+		"│ SSL Handshake:     %{time_appconnect}s          │\r\n" +
+		"│ Server Processing: %{time_pretransfer}s          │\r\n" +
+		"│ Content Transfer:  %{time_starttransfer}s          │\r\n" +
+		"│ Total:             %{time_total}s          │\r\n" +
+		"├───────────SpeedMetrics────────────────┤\r\n" +
+		"│ Download Speed:    %{speed_download} bytes/sec    │\r\n" +
+		"└───────────────────────────────────────┘\r\n"
 )
 
 func main() {
@@ -128,6 +138,12 @@ func main() {
 	if !headerSupplied(opts, "Accept") {
 		opts = append(opts, "-H", "Accept: application/json, */*")
 	}
+
+	// 如果没有指定 -w 参数，添加默认的时间输出格式
+	if !opts.Has("w") && !opts.Has("write-out") && !opts.Has("head") && !opts.Has("I") {
+		opts = append(opts, "-w", defaultTimeFormat)
+	}
+
 	if opts.Has("curl") {
 		opts.Remove("curl")
 		fmt.Print("curl")
